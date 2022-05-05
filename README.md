@@ -18,23 +18,39 @@ python -m venv twtan
 ```
 **Step 2.** Add the virtual environment to the Python Kernel\
 
+From the folder **twtan/Scripts** : 
+
 ```console
-python -m pip install --upgrade pip
-pip install ipykernel 
-python -m ipykernel install --user --name=twtan
+python.exe -m pip install --upgrade pip
+pip.exe install ipykernel 
+python.exe -m ipykernel install --user --name=twtan
 ```
 
 **Step 3.** Install the libraries we're going to use in our VE :\
 
+From the folder **twtan/Scripts** :\ 
+
 ```console
-pip install spacy==3.2.3
-python -m spacy download en_core_web_lg
-pip install pyLDAvis==3.3.1
-pip install emoji==1.6.3
-pip install pandas-profiling==3.1.0
-pip install plotly==5.6.0
-pip install gensim==4.1.2
-pip install chart-studio==1.1.0
-pip install wordcloud==1.8.1
+pip.exe install spacy==3.2.3
+python.exe -m spacy download fr_core_news_lg
+pip.exe install pyLDAvis==3.3.1
+pip.exe install scikit-learn==1.0.2
+pip.exe install pandas-profiling==3.1.0
+pip.exe install plotly==5.6.0
+pip.exe install gensim==4.1.2
+pip.exe install chart-studio==1.1.0
+pip.exe install wordcloud==1.8.1
+pip3.exe install --upgrade git+https://github.com/twintproject/twint.git@origin/master#egg=twint
+pip.exe install streamlit==1.8.1 
+pip.exe install Unidecode==1.3.4
+pip.exe install stopwordsiso==0.6.1
+pip.exe install seaborn==0.11.2
 ```
 
+**Step 3.** Run the project :\
+
+From the folder **twtan/Scripts** :\ 
+
+```console
+streamlit.exe run ../../main.py
+```
