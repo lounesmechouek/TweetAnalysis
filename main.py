@@ -18,41 +18,33 @@ import streamlit as st
 from twitter_scrapping import scrapping_modules
 from data_modules import preproc_modules
 from data_modules import eda_modules
+from ressources import ressources_modules
 # ---------------------------
-
-# Global variables
-searchDone, outliers, valeurs_manquantes, normalisation = [False for i in range(4)]
 
 # Chemin de sauvegarde des fichiers générés :
 # L'exécution se fait depuis twtan/Scripts
 SAVE_PATH = '../../outputs/'
 
-# Variable temporaire regroupant quelques positions géographiques
-# L'idée est d'améliorer cette approche en regroupant toutes les positions dans un fichier csv
-allPositionsGeographiques = {
-    'Peu importe' : None, 
-    'Paris' : '48.8588897,2.320041,10km',
-    'Lille' : '50.6365654,3.0635282,10km',
-    'Marseille' : '43.2961743,5.3699525,10km',
-    'Bretagne' : '48.2640845,-2.9202408,10km',
-    'Lyon' : '45.7578137,4.8320114,10km',
-    'Bordeaux' : '44.841225,-0.5800364,10km',
-    'Nice' : '43.7009358,7.2683912,10km',
-    'Toulouse' : '43.6044622,1.4442469,10km',
-    'Dijon' : '47.3215806,5.0414701,10km',
-    'Rennes' : '48.1113387,-1.6800198,10km',
-    'Avignon' : '43.9492493,4.8059012,10km',
-    'Nancy' : '48.6937223,6.1834097,10km',
-    'Créteil' : '48.7771486,2.4530731,10km'
-}
+# Variable regroupant quelques positions géographiques (les plus importantes communes de France)
+try:
+    allPositionsGeographiques = ressources_modules.load_coordinates_asDict()
+except:
+    st.error("Il y a eu une erreur lors de la récupération des coordonnées géographiques...")
 
 # Liste customisée de stop_words :
-custom_stopwords = ["","ci-dessous","j'en","actuellement","etre","faire","voir","france","aller","oui","non","absolument","peut-etre","waw","mtn","trv","bcp","what","ptdrr","parcequ","ehh","allez","dsl","putain","merde","svp","ptn","jsuis","hahahahaha","ici","vraiment","fois","rien","mettre","mdr","bla","aujourd'hui"]
+custom_stopwords = preproc_modules.load_custom_stopwords()
 
 # 
 nlp = spacy.load("fr_core_news_lg")
 
 ## Début application
+# set page layout
+st.set_page_config(
+    page_title="Tweets Analysis",
+    page_icon="📈",
+    initial_sidebar_state="expanded"
+)
+
 st.title("Interface d'analyse de tweets")
 
 # Containers
@@ -143,16 +135,16 @@ with tweetsFetching:
 # ===========================================
 # Partie II : Nettoyage et exploration des données
 with dataExploration :
-        st.subheader("Exploration des données")
-        #try:
-            # nettoyage
+    st.subheader("Exploration des données")
+    try:
+        # nettoyage
         preproc_modules.language_selection(df)
         preproc_modules.basic_preproc(df, ['date', 'time', 'tweet', 'hashtags', 'username', 'name','retweet', 'geo'])
         tweet_tokens, vocab = preproc_modules.tokenization(tweets = df['tweet'], nlp = nlp)
         tweet_tokens = preproc_modules.remove_stopwords(tweet_tokens, nlp, custom_stopwords)
 
-            # exploration
-            # Affichage des mots les plus représentatifs du corpus
+        # exploration
+        # Affichage des mots les plus représentatifs du corpus
         st.text("Mots représentatifs du benchmark")
 
         # On regroupe les tokens sous forme d'une unique chaîne
@@ -167,19 +159,25 @@ with dataExploration :
         st.image(wc.to_array())
 
         # Hashtags
-        hashtags = eda_modules.get_tophashtags(df['tweet'])
-        hashtags.columns = ['hashtag','occurences']
-
         st.text("Hashtags les plus populaires")
+
+        hashtags = eda_modules.get_tophashtags(df['tweet'])
         plot = eda_modules.barplot_from_data(hashtags.head(6), x='hashtag', y='occurences')
         st.pyplot(plot)
 
+        # Utilisateurs
+        st.text("Utilisateurs les plus cités")
+        mentions = eda_modules.get_topmentions(df['tweet'])
+
+        plot = eda_modules.barplot_from_data(mentions.head(6), x='mention', y='occurences')
+        st.pyplot(plt)
+
         # Map
         st.text("Répartition des discussions autour du sujet par localités")
+        eda_modules.map_from_locations(df['geo'])
 
-        #st.map()
+    except:
+        st.error("Le document n'a pas pu être lu ou alors il est erroné. Veuillez le recharger ou refaire une recherche !")
 
-
-
-    #except:
-        #st.error("Le document n'a pas pu être lu ou alors il est erroné")
+# ===========================================
+# Partie III : Analyse avancée

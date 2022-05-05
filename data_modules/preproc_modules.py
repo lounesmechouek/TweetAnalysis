@@ -75,8 +75,8 @@ def tokenization(tweets, nlp):
     for doc in docs:
         tokens.append(clean(doc))
     
-    for i, tokenized_text in enumerate(tokens):
-        print(f"TWEET {i + 1}:", tokenized_text, "\n")
+    #for i, tokenized_text in enumerate(tokens):
+        #print(f"TWEET {i + 1}:", tokenized_text, "\n")
 
     vocabulary=set(chain(*tokens))
 
@@ -106,3 +106,43 @@ def remove_stopwords(tkns, nlp, custom_stopwords=[]):
     
     return final_tokens 
 
+def load_custom_stopwords():
+    return [
+        "",
+        "ci-dessous",
+        "j'en",
+        "actuellement",
+        "etre",
+        "faire",
+        "voir",
+        "france",
+        "aller",
+        "oui",
+        "non",
+        "absolument",
+        "peut-etre",
+        "waw",
+        "mtn",
+        "trv",
+        "bcp",
+        "what",
+        "ptdrr",
+        "parceque",
+        "ehh",
+        "allez",
+        "dsl",
+        "putain",
+        "merde",
+        "svp",
+        "ptn",
+        "jsuis",
+        "hahahahaha",
+        "ici",
+        "vraiment",
+        "fois",
+        "rien",
+        "mettre",
+        "mdr",
+        "bla",
+        "aujourd'hui"
+    ]

@@ -2,13 +2,13 @@
 
 ## Requirements :
 You should have a recent version of python installed on your computer.\
-We recommand using Python 3.8.10 or higher, as it the version used by the authors for the configuration.\
+We recommand using Python 3.8.10 or higher, as it the version used by the authors for the configuration.
 - Numpy >= 1.22.3
 - Pandas >= 1.4.1
 - Matplotlib >= 3.5.1
 
 ## Get the project running
-From the root folder of the project :\
+From the root folder of the project :
 
 **Step 1.** Create the virtual environment and activate it
 
@@ -16,7 +16,7 @@ From the root folder of the project :\
 python -m venv twtan
 .\twtan\Scripts\activate
 ```
-**Step 2.** Add the virtual environment to the Python Kernel\
+**Step 2.** Add the virtual environment to the Python Kernel
 
 From the folder **twtan/Scripts** : 
 
@@ -26,9 +26,9 @@ pip.exe install ipykernel
 python.exe -m ipykernel install --user --name=twtan
 ```
 
-**Step 3.** Install the libraries we're going to use in our VE :\
+**Step 3.** Install the libraries we're going to use in our VE :
 
-From the folder **twtan/Scripts** :\ 
+From the folder **twtan/Scripts** :
 
 ```console
 pip.exe install spacy==3.2.3
@@ -45,11 +45,13 @@ pip.exe install streamlit==1.8.1
 pip.exe install Unidecode==1.3.4
 pip.exe install stopwordsiso==0.6.1
 pip.exe install seaborn==0.11.2
+pip.exe install folium==0.12.1.post1
+pip.exe install streamlit-folium==0.6.7
 ```
 
-**Step 3.** Run the project :\
+**Step 3.** Run the project :
 
-From the folder **twtan/Scripts** :\ 
+From the folder **twtan/Scripts** :
 
 ```console
 streamlit.exe run ../../main.py
