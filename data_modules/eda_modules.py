@@ -62,7 +62,8 @@ def map_from_locations(geoTweets):
 
     for i in range(len(grouped_locations)):
         folium.Circle(
-            radius=int(grouped_locations.loc[i].occ)*mean,
+            #radius=int(grouped_locations.loc[i].occ)*mean,
+            radius=int(grouped_locations.loc[i].occ),
             location=[float(grouped_locations.loc[i].lat), float(grouped_locations.loc[i].lon)],
             color=generate_random_color(),
             fill=True,

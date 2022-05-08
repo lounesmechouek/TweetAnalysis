@@ -25,6 +25,14 @@ from ressources import ressources_modules
 # L'exécution se fait depuis twtan/Scripts
 SAVE_PATH = '../../outputs/'
 
+# set page layout
+st.set_page_config(
+    page_title="Tweets Analysis",
+    page_icon="📈",
+    initial_sidebar_state="expanded"
+)
+allPositionsGeographiques=None
+
 # Variable regroupant quelques positions géographiques (les plus importantes communes de France)
 try:
     allPositionsGeographiques = ressources_modules.load_coordinates_asDict()
@@ -38,12 +46,7 @@ custom_stopwords = preproc_modules.load_custom_stopwords()
 nlp = spacy.load("fr_core_news_lg")
 
 ## Début application
-# set page layout
-st.set_page_config(
-    page_title="Tweets Analysis",
-    page_icon="📈",
-    initial_sidebar_state="expanded"
-)
+
 
 st.title("Interface d'analyse de tweets")
 
@@ -110,6 +113,7 @@ with tweetsFetching:
                     st.success('Récupération de tweets terminée avec succès !')
 
                     # On lit les données récupérées
+                    
                     try:
                         input = pd.read_csv(path)
                         df = input.copy()
@@ -136,48 +140,52 @@ with tweetsFetching:
 # Partie II : Nettoyage et exploration des données
 with dataExploration :
     st.subheader("Exploration des données")
-    try:
+    #try:
         # nettoyage
-        preproc_modules.language_selection(df)
-        preproc_modules.basic_preproc(df, ['date', 'time', 'tweet', 'hashtags', 'username', 'name','retweet', 'geo'])
-        tweet_tokens, vocab = preproc_modules.tokenization(tweets = df['tweet'], nlp = nlp)
-        tweet_tokens = preproc_modules.remove_stopwords(tweet_tokens, nlp, custom_stopwords)
+    preproc_modules.language_selection(df)
+    preproc_modules.basic_preproc(df, ['date', 'time', 'tweet', 'hashtags', 'username', 'name','retweet', 'geo'])
+    tweet_tokens, vocab = preproc_modules.tokenization(tweets = df['tweet'], nlp = nlp)
+    tweet_tokens = preproc_modules.remove_stopwords(tweet_tokens, nlp, custom_stopwords)
 
-        # exploration
-        # Affichage des mots les plus représentatifs du corpus
-        st.text("Mots représentatifs du benchmark")
+    # exploration
+    # Affichage des mots les plus représentatifs du corpus
+    st.text("Mots représentatifs du benchmark")
 
-        # On regroupe les tokens sous forme d'une unique chaîne
-        temp_words = []
-        for tkn in tweet_tokens:
-            temp_words.append(" ".join(tkn))
+    # On regroupe les tokens sous forme d'une unique chaîne
+    temp_words = []
+    for tkn in tweet_tokens:
+        temp_words.append(" ".join(tkn))
 
-        words_asStr = " ".join(temp_words)
+    words_asStr = " ".join(temp_words)
 
-        # Word cloud
-        wc = eda_modules.word_cloud_from_text(words_asStr, nlp, custom_stopwords)
-        st.image(wc.to_array())
+    # Word cloud
+    wc = eda_modules.word_cloud_from_text(words_asStr, nlp, custom_stopwords)
+    st.image(wc.to_array())
 
-        # Hashtags
-        st.text("Hashtags les plus populaires")
+    # Hashtags
+    st.text("Hashtags les plus populaires")
 
-        hashtags = eda_modules.get_tophashtags(df['tweet'])
-        plot = eda_modules.barplot_from_data(hashtags.head(6), x='hashtag', y='occurences')
-        st.pyplot(plot)
+    hashtags = eda_modules.get_tophashtags(df['tweet'])
+    plot = eda_modules.barplot_from_data(hashtags.head(6), x='hashtag', y='occurences')
+    st.pyplot(plot)
 
-        # Utilisateurs
-        st.text("Utilisateurs les plus cités")
-        mentions = eda_modules.get_topmentions(df['tweet'])
+    # Utilisateurs
+    st.text("Utilisateurs les plus cités")
+    mentions = eda_modules.get_topmentions(df['tweet'])
 
-        plot = eda_modules.barplot_from_data(mentions.head(6), x='mention', y='occurences')
-        st.pyplot(plt)
+    plot = eda_modules.barplot_from_data(mentions.head(6), x='mention', y='occurences')
+    st.pyplot(plt)
 
-        # Map
-        st.text("Répartition des discussions autour du sujet par localités")
-        eda_modules.map_from_locations(df['geo'])
+    # Map
+    st.text("Répartition des discussions autour du sujet par localités")
+    eda_modules.map_from_locations(df['geo'])
 
-    except:
-        st.error("Le document n'a pas pu être lu ou alors il est erroné. Veuillez le recharger ou refaire une recherche !")
+    #except:
+        #st.error("Le document n'a pas pu être lu ou alors il est erroné. Veuillez le recharger ou refaire une recherche !")
 
 # ===========================================
 # Partie III : Analyse avancée
+
+
+
+#Doremi
