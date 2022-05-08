@@ -29,6 +29,7 @@ SAVE_PATH = '../../outputs/'
 st.set_page_config(
     page_title="Tweets Analysis",
     page_icon="📈",
+    layout="centered",# or "wide" pour utiliser l'ecran tout entier .
     initial_sidebar_state="expanded"
 )
 allPositionsGeographiques=None
@@ -98,7 +99,8 @@ with tweetsFetching:
             if searchValue != "" :
                 try:
                     path = SAVE_PATH + "miningTwitter_{}.csv".format(searchValue)
-
+                    #ajouter le mot-clé de rechercha à la liste des stop words
+                    custom_stopwords+=searchValue
                     #nest_asyncio.apply()
 
                     scrapping_modules.get_tweets(
@@ -145,7 +147,9 @@ with dataExploration :
     preproc_modules.language_selection(df)
     preproc_modules.basic_preproc(df, ['date', 'time', 'tweet', 'hashtags', 'username', 'name','retweet', 'geo'])
     tweet_tokens, vocab = preproc_modules.tokenization(tweets = df['tweet'], nlp = nlp)
-    tweet_tokens = preproc_modules.remove_stopwords(tweet_tokens, nlp, custom_stopwords)
+
+    #il faut mettre à jour le vocabulaire issu de la tokenisation en supprimant les stop words
+    tweet_tokens,NewVocab = preproc_modules.remove_stopwords(tweet_tokens, nlp, custom_stopwords)
 
     # exploration
     # Affichage des mots les plus représentatifs du corpus
