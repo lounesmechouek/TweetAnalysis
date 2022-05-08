@@ -189,7 +189,9 @@ with dataExploration :
 
 # ===========================================
 # Partie III : Analyse avancée
+with analyseAvancée:
+    st.subheader("Analyse Avancée")
 
 
 
-#Doremi
+

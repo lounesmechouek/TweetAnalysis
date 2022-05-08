@@ -103,7 +103,15 @@ def remove_stopwords(tkns, nlp, custom_stopwords=[]):
         l=[]
         for t in token:
             if t not in ALL_STOP_WORDS:
-                l.append(t)
+            #ajouter des condition pour corriger les fautes d'orthographes et unifier l'ecriture d'une mots
+                if(t=='journee'):#jour
+                    l.append('jour')
+                elif(t=='francai'):#francais
+                    l.append('francais')
+                elif(t=='pay'):#pays
+                    l.append('pays')
+                else:
+                    l.append(t)
         if(len(l)>0):
             final_tokens.append(l)
     
