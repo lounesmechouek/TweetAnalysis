@@ -1,5 +1,6 @@
 # Imports
 # ---------------------------
+from asyncio.windows_events import NULL
 import pandas as pd
 import numpy as np
 
@@ -19,6 +20,7 @@ from twitter_scrapping import scrapping_modules
 from data_modules import preproc_modules
 from data_modules import eda_modules
 from ressources import ressources_modules
+from topic_modeling import tm_modules
 # ---------------------------
 
 # Chemin de sauvegarde des fichiers générés :
@@ -56,7 +58,8 @@ tweetsFetching = st.container()
 dataExploration = st.container()
 analyseAvancée = st.container()
 
-
+charger=False
+tweet_tokens=None
 # Partie I : Récupération des tweets à analyser
 with tweetsFetching:
     st.subheader("Chargement des données")
@@ -100,7 +103,7 @@ with tweetsFetching:
                 try:
                     path = SAVE_PATH + "miningTwitter_{}.csv".format(searchValue)
                     #ajouter le mot-clé de rechercha à la liste des stop words
-                    custom_stopwords+=searchValue
+                    custom_stopwords.append(searchValue)
                     #nest_asyncio.apply()
 
                     scrapping_modules.get_tweets(
@@ -119,6 +122,7 @@ with tweetsFetching:
                     try:
                         input = pd.read_csv(path)
                         df = input.copy()
+                        charger=True
                         if "Unnamed: 0" in df.columns: df.drop("Unnamed: 0",inplace=True,axis=1)
                     except FileNotFoundError:
                         st.error('File not found.')
@@ -144,53 +148,68 @@ with dataExploration :
     st.subheader("Exploration des données")
     #try:
         # nettoyage
-    preproc_modules.language_selection(df)
-    preproc_modules.basic_preproc(df, ['date', 'time', 'tweet', 'hashtags', 'username', 'name','retweet', 'geo'])
-    tweet_tokens, vocab = preproc_modules.tokenization(tweets = df['tweet'], nlp = nlp)
+    if(charger!=False):
+        print("****************************************************************************************")
+        print(df)
+        print("****************************************************************************************")
+        preproc_modules.language_selection(df)
+        print("hello")
+        preproc_modules.basic_preproc(df, ['date', 'time', 'tweet', 'hashtags', 'username', 'name','retweet', 'geo'])
+        tweet_tokens, vocab = preproc_modules.tokenization(tweets = df['tweet'], nlp = nlp)
 
-    #il faut mettre à jour le vocabulaire issu de la tokenisation en supprimant les stop words
-    tweet_tokens,NewVocab = preproc_modules.remove_stopwords(tweet_tokens, nlp, custom_stopwords)
+        #il faut mettre à jour le vocabulaire issu de la tokenisation en supprimant les stop words
+        tweet_tokens,NewVocab = preproc_modules.remove_stopwords(tweet_tokens, nlp, custom_stopwords)
 
-    # exploration
-    # Affichage des mots les plus représentatifs du corpus
-    st.text("Mots représentatifs du benchmark")
+        # exploration
+        # Affichage des mots les plus représentatifs du corpus
+        st.text("Mots représentatifs du benchmark")
 
-    # On regroupe les tokens sous forme d'une unique chaîne
-    temp_words = []
-    for tkn in tweet_tokens:
-        temp_words.append(" ".join(tkn))
+        # On regroupe les tokens sous forme d'une unique chaîne
+        temp_words = []
+        for tkn in tweet_tokens:
+            temp_words.append(" ".join(tkn))
 
-    words_asStr = " ".join(temp_words)
+        words_asStr = " ".join(temp_words)
 
-    # Word cloud
-    wc = eda_modules.word_cloud_from_text(words_asStr, nlp, custom_stopwords)
-    st.image(wc.to_array())
+        # Word cloud
+        wc = eda_modules.word_cloud_from_text(words_asStr, nlp, custom_stopwords)
+        st.image(wc.to_array())
 
-    # Hashtags
-    st.text("Hashtags les plus populaires")
+        # Hashtags
+        st.text("Hashtags les plus populaires")
 
-    hashtags = eda_modules.get_tophashtags(df['tweet'])
-    plot = eda_modules.barplot_from_data(hashtags.head(6), x='hashtag', y='occurences')
-    st.pyplot(plot)
+        hashtags = eda_modules.get_tophashtags(df['tweet'])
+        plot = eda_modules.barplot_from_data(hashtags.head(6), x='hashtag', y='occurences')
+        st.pyplot(plot)
 
-    # Utilisateurs
-    st.text("Utilisateurs les plus cités")
-    mentions = eda_modules.get_topmentions(df['tweet'])
+        # Utilisateurs
+        st.text("Utilisateurs les plus cités")
+        mentions = eda_modules.get_topmentions(df['tweet'])
 
-    plot = eda_modules.barplot_from_data(mentions.head(6), x='mention', y='occurences')
-    st.pyplot(plt)
+        plot = eda_modules.barplot_from_data(mentions.head(6), x='mention', y='occurences')
+        st.pyplot(plt)
 
-    # Map
-    st.text("Répartition des discussions autour du sujet par localités")
-    eda_modules.map_from_locations(df['geo'])
+        # Map
+        st.text("Répartition des discussions autour du sujet par localités")
+        eda_modules.map_from_locations(df['geo'])
 
-    #except:
-        #st.error("Le document n'a pas pu être lu ou alors il est erroné. Veuillez le recharger ou refaire une recherche !")
-
+        #except:
+            #st.error("Le document n'a pas pu être lu ou alors il est erroné. Veuillez le recharger ou refaire une recherche !")
+    else:
+        st.info("Veuillez charger vos données afin de les visualiser")
 # ===========================================
 # Partie III : Analyse avancée
 with analyseAvancée:
     st.subheader("Analyse Avancée")
+
+    modele = st.selectbox('choisissez un modéle',('LDA', 'NMF'))
+    st.write('You selected:', modele)
+    if(modele=='LDA'):
+        if(tweet_tokens!=None):
+            corpus,Dict=tm_modules.create_dict(tweet_tokens)
+            c=tm_modules.build_LDA_model(corpus,Dict)
+        else:
+            st.info("Veuillez charger vos données afin créer le modéle")
 
 
 

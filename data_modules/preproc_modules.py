@@ -180,5 +180,6 @@ def load_custom_stopwords():
         'the',
         'an',
         'mdrrr',
-        'trop'
+        'trop',
+        'mot'
     ]
