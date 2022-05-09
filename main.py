@@ -1,6 +1,7 @@
 # Imports
 # ---------------------------
 from asyncio.windows_events import NULL
+from multiprocessing.sharedctypes import Value
 import pandas as pd
 import numpy as np
 
@@ -11,6 +12,7 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import plotly
 import seaborn as sns
+import os
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
 
@@ -21,11 +23,17 @@ from data_modules import preproc_modules
 from data_modules import eda_modules
 from ressources import ressources_modules
 from topic_modeling import tm_modules
+from PIL import Image
+
 # ---------------------------
 
 # Chemin de sauvegarde des fichiers générés :
 # L'exécution se fait depuis twtan/Scripts
 SAVE_PATH = '../../outputs/'
+
+#définir le chemin du logo de twitter
+curr_path = os.path.dirname(__file__)
+logo_path = curr_path+'/twitter_logo.png'
 
 # set page layout
 st.set_page_config(
@@ -50,8 +58,15 @@ nlp = spacy.load("fr_core_news_lg")
 
 ## Début application
 
-
+#titleContainer,image=st.columns(2)
+#with titleContainer:
 st.title("Interface d'analyse de tweets")
+
+#####
+#with image:
+ #   image = Image.open(logo_path)
+  #  st.image(image,width=100)
+
 
 # Containers
 tweetsFetching = st.container()
@@ -96,7 +111,7 @@ with tweetsFetching:
         # On saute une ligne
         st.text("")
         searchDone = st.button(label = "Rechercher") 
-
+        
         # searchDone est à true seulement si l'on a appuyé sur le bouton de recherche
         if searchDone:
             if searchValue != "" :
@@ -149,11 +164,7 @@ with dataExploration :
     #try:
         # nettoyage
     if(charger!=False):
-        print("****************************************************************************************")
-        print(df)
-        print("****************************************************************************************")
         preproc_modules.language_selection(df)
-        print("hello")
         preproc_modules.basic_preproc(df, ['date', 'time', 'tweet', 'hashtags', 'username', 'name','retweet', 'geo'])
         tweet_tokens, vocab = preproc_modules.tokenization(tweets = df['tweet'], nlp = nlp)
 
@@ -202,14 +213,27 @@ with dataExploration :
 with analyseAvancée:
     st.subheader("Analyse Avancée")
 
-    modele = st.selectbox('choisissez un modéle',('LDA', 'NMF'))
-    st.write('You selected:', modele)
+    gauche,droite=st.columns(2)
+
+    with gauche:
+        modele = st.selectbox('Modélisation par thématique avec :',('LDA', 'NMF'))
+        topics_button= st.button(label = "Découvrir les thématiques !") 
+    with droite:
+        nbr_topics = st.number_input('choisissez un nombre de thématiques',min_value=2, max_value=20)
+    
     if(modele=='LDA'):
-        if(tweet_tokens!=None):
-            corpus,Dict=tm_modules.create_dict(tweet_tokens)
-            c=tm_modules.build_LDA_model(corpus,Dict)
-        else:
-            st.info("Veuillez charger vos données afin créer le modéle")
+        if (topics_button==True):
+            searchDone=True
+            if(tweet_tokens!=None):
+                #on commence par créer le dictionnaire ainsi qu'une sorte de matrice documents-termes
+                corpus,disct=tm_modules.create_freq_Doc_Term(tweet_tokens)
+                #construire le modele LDA
+                LDA_model=tm_modules.build_LDA_model(corpus,disct,nbr_topics)
+                le=tm_modules.plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics)
+                st.pyplot(fig=le)
+            else:
+                st.info("Veuillez charger vos données pour la découverte de thématiques")
+    #else:
 
 
 

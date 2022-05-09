@@ -5,6 +5,9 @@ from spacy.attrs import ORTH
 from itertools import chain
 import re
 from unidecode import unidecode
+import streamlit as st
+
+
 
 def language_selection(df, lang='fr'):
     '''Enlève les tweets qui ne sont pas dans les langues "lang"
@@ -37,6 +40,7 @@ def clean(doc):
     and(not token.is_stop)#si on l'ajoute pas ici il va ajouter les tokens comme .apres
     and (token.ent_type_ != "GPE") 
   ]
+
 
 def tokenization(tweets, nlp):
     ''' Renvoie une liste de tokens pour chaque tweets ainsi que le vocabulaire global
@@ -87,6 +91,7 @@ def tokenization(tweets, nlp):
 
     return tokens, vocabulary
 
+
 def remove_stopwords(tkns, nlp, custom_stopwords=[]):
     '''Enlève, parmi les tokens, ceux qui sont des stop words
     tkns : Liste de tokens
@@ -107,7 +112,7 @@ def remove_stopwords(tkns, nlp, custom_stopwords=[]):
                 if(t=='journee'):#jour
                     l.append('jour')
                 elif(t=='francai'):#francais
-                    l.append('francais')
+                    l.append('français')
                 elif(t=='pay'):#pays
                     l.append('pays')
                 else:
