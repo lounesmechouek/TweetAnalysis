@@ -2,6 +2,9 @@
 # ---------------------------
 import pandas as pd
 import numpy as np
+import sys
+import subprocess
+import pickle
 
 import spacy
 import datetime
@@ -12,6 +15,7 @@ import plotly
 import seaborn as sns
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
+import gensim
 
 import streamlit as st
 
@@ -19,7 +23,11 @@ from twitter_scrapping import scrapping_modules
 from data_modules import preproc_modules
 from data_modules import eda_modules
 from ressources import ressources_modules
+from topic_modeling import tm_modules
 # ---------------------------
+# Variables de session, persistent à travers les re-runs (state)
+if 'TKNS' not in st.session_state:
+	st.session_state.TKNS = None
 
 # Chemin de sauvegarde des fichiers générés :
 # L'exécution se fait depuis twtan/Scripts
@@ -50,7 +58,7 @@ st.title("Interface d'analyse de tweets")
 # Containers
 tweetsFetching = st.container()
 dataExploration = st.container()
-analyseAvancée = st.container()
+analyseAvancee = st.container()
 
 
 # Partie I : Récupération des tweets à analyser
@@ -111,7 +119,7 @@ with tweetsFetching:
 
                     # On lit les données récupérées
                     try:
-                        input = pd.read_csv(path)
+                        input = pd.read_csv(path, encoding = 'unicode_escape')
                         df = input.copy()
                         if "Unnamed: 0" in df.columns: df.drop("Unnamed: 0",inplace=True,axis=1)
                     except FileNotFoundError:
@@ -126,7 +134,7 @@ with tweetsFetching:
         filename = st.file_uploader('Uploader le fichier')
         try:
             if filename is not None:
-                input = pd.read_csv(filename)
+                input = pd.read_csv(filename, encoding = 'unicode_escape')
                 df = input.copy()
                 if "Unnamed: 0" in df.columns: df.drop("Unnamed: 0",inplace=True,axis=1)
         except FileNotFoundError:
@@ -142,6 +150,8 @@ with dataExploration :
         preproc_modules.basic_preproc(df, ['date', 'time', 'tweet', 'hashtags', 'username', 'name','retweet', 'geo'])
         tweet_tokens, vocab = preproc_modules.tokenization(tweets = df['tweet'], nlp = nlp)
         tweet_tokens = preproc_modules.remove_stopwords(tweet_tokens, nlp, custom_stopwords)
+
+        st.session_state.TKNS = tweet_tokens
 
         # exploration
         # Affichage des mots les plus représentatifs du corpus
@@ -181,3 +191,9 @@ with dataExploration :
 
 # ===========================================
 # Partie III : Analyse avancée
+with analyseAvancee:
+    st.subheader("Analyse avancée")
+    
+    st.text("Extraction des sujets de discussion principaux")
+    
+   

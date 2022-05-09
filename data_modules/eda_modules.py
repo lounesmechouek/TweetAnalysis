@@ -56,13 +56,12 @@ def map_from_locations(geoTweets):
     '''
     grouped_locations = get_locations_by_occurences(geoTweets)
     m = folium.Map(location=[46.227638, 2.213749], zoom_start=5.5) # latitude et longitude du centre de la France
-    var = grouped_locations['occ'].std() 
     mean = grouped_locations['occ'].mean() 
 
 
     for i in range(len(grouped_locations)):
         folium.Circle(
-            radius=int(grouped_locations.loc[i].occ)*mean,
+            radius=int(grouped_locations.loc[i].occ)*mean/2,
             location=[float(grouped_locations.loc[i].lat), float(grouped_locations.loc[i].lon)],
             color=generate_random_color(),
             fill=True,
