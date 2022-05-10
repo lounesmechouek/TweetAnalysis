@@ -27,6 +27,13 @@ def barplot_from_data(data, x, y):
     sns.barplot(x=x, y=y, data=data, ax=ax)
     return fig
 
+def barplot_x_y(x, y):
+    '''Renvoie un diagramme en batons à partir d'itérables x,y
+    '''
+    fig, ax = plt.subplots()
+    sns.barplot(x=x, y=y, ax=ax)
+    return fig
+
 def get_tophashtags(tweets):
     '''Renvoie les hashtags les plus populaires
     '''

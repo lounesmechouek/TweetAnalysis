@@ -70,7 +70,10 @@ def tokenization(tweets, nlp):
     like_num = lambda token: re.fullmatch(num_regex, token.text)
     Token.set_extension("like_num", getter=like_num,force=True)
 
-    docs = nlp.pipe(tweets)
+    
+    texts = tweets.tolist()#ajouté
+
+    docs = nlp.pipe(texts)
     tokens = [] #contiendra les tokens utiles
     for doc in docs:
         tokens.append(clean(doc))
@@ -100,11 +103,21 @@ def remove_stopwords(tkns, nlp, custom_stopwords=[]):
         l=[]
         for t in token:
             if t not in ALL_STOP_WORDS:
-                l.append(t)
+            #ajouter des condition pour corriger les fautes d'orthographes et unifier l'ecriture d'une mots
+                if(t=='journee'):#jour
+                    l.append('jour')
+                elif(t=='francai'):#francais
+                    l.append('francais')
+                elif(t=='pay'):#pays
+                    l.append('pays')
+                else:
+                    l.append(t)
         if(len(l)>0):
             final_tokens.append(l)
     
-    return final_tokens 
+    MYvocabulary=set(chain(*final_tokens))
+    
+    return final_tokens,MYvocabulary
 
 def load_custom_stopwords():
     return [
@@ -134,6 +147,7 @@ def load_custom_stopwords():
         "putain",
         "merde",
         "svp",
+        "stp",
         "ptn",
         "jsuis",
         "hahahahaha",
@@ -144,5 +158,30 @@ def load_custom_stopwords():
         "mettre",
         "mdr",
         "bla",
-        "aujourd'hui"
+        "wtf",
+        "aujourd'hui",
+        'bah',
+        'zut',
+        'aucun',
+        'bahah',
+        'bahahah',
+        'euh',
+        'jai',
+        'jaivu',
+        'wsh',
+        'ouf',
+        'tjrs',
+        'grv',
+        'alrs',
+        'that',
+        'you',
+        'this',
+        'our',
+        'the',
+        'an',
+        'mdrrr',
+        'trop',
+        'mot',
+        'aSSa',
+        
     ]
