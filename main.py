@@ -236,11 +236,14 @@ with st.sidebar:
 
     gauche,droite=st.columns(2)
 
+   
+    with droite:
+        methode_nb_topic=st.selectbox('Méthode du choix du nombre de thématiques:',('Score de cohérance', 'choisi par l\'utilisateur'))
+
     with gauche:
         modele = st.selectbox('Modélisation par thématique avec :',('LDA', 'NMF'))
-        #topics_button= st.button(label = "Découvrir les thématiques !") 
-    with droite:
-        nbr_topics = st.number_input('choisissez un nombre de thématiques',min_value=2, max_value=20)
+        if(methode_nb_topic=='choisi par l\'utilisateur'):
+            nbr_topics = st.number_input('choisissez un nombre de thématiques',min_value=2, max_value=20)
     
 
 with topicModeling:
@@ -249,20 +252,28 @@ with topicModeling:
             if(tweet_tokens!=None):
                 #on commence par créer le dictionnaire ainsi qu'une sorte de matrice documents-termes
                 corpus,disct=tm_modules.create_freq_Doc_Term(tweet_tokens)
-                model_list, coherence_values=tm_modules.compute_coherence_values(disct, corpus, tweet_tokens, 4, start=2, step=3)
-                number=tm_modules.find_optimal_number_of_topics(model_list, coherence_values)
-                st.write("SUGGESTION: le meilleur nombre de topic est ",number," !")
-
-
-
-
-                #construire le modele LDA
-                LDA_model=tm_modules.build_LDA_model(corpus,disct,nbr_topics)
-                le=tm_modules.plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics)
-                st.pyplot(fig=le)
+                
+                #vérifier la méthode choisi par l'utilisateur pour le choix du nombre de topics 
+                if(methode_nb_topic=='Score de cohérance'):
+                    model_list, coherence_values=tm_modules.compute_coherence_values(disct, corpus, tweet_tokens, 8, start=2, step=1)
+                    optimal_number_of_topics,optimal_score=tm_modules.find_optimal_number_of_topics(coherence_values)
+                    st.write("le meilleur nombre de thèmatiques est: ",optimal_number_of_topics)
+                    st.write("le score de cohérence correspondant est : ",optimal_score)
+                    #construire le modele LDA
+                    #LDA_model=tm_modules.build_LDA_model(corpus,disct,number)
+                    LDA_model=model_list[optimal_number_of_topics-2]
+                    le=tm_modules.plot_top_words_topic(LDA_model,custom_stopwords,optimal_number_of_topics)
+                    st.pyplot(fig=le)
+                else:
+                    LDA_model=tm_modules.build_LDA_model(corpus,disct,nbr_topics)
+                    coherence_score=tm_modules.calcul_coherence_score(LDA_model,tweet_tokens,disct)
+                    st.write("le score de cohérence correspondant est : ",coherence_score)
+                    le=tm_modules.plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics)
+                    st.pyplot(fig=le)
             else:
                 st.info("Veuillez charger vos données pour découvrir les sujets abordés!")
-
+    elif(modele=='NMF'):
+        st.text('comming soon')
 
 with sentimentAnalysis:
     st.subheader("Analyse de sentiments")

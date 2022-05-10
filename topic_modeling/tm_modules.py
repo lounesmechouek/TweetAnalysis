@@ -82,12 +82,24 @@ def plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics):
     return fig
 
 
-#fonction qui calcul le score de coherence pour différents nombre de topics
-def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
+
+@st.cache
+def calcul_coherence_score(model,texts,dictionary):
+    coherence_score = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
+    coherence_lda = coherence_score.get_coherence()
+    return coherence_lda
+
+"""
+fonction qui calcul le score de coherence pour différents nombre de topics 
+et retourne une liste de modele ainsi qu'une liste contenant le score de cohérence de chaque modéle
+"""""
+@st.cache
+def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=1):
     
     coherence_values = []#liste pour stocker les différents score de cohérence
     model_list = []#liste pour garder les modéle généré avec différents nombre de topic
     for num_topics in range(start, limit, step):
+        print(" ----> calcul d'un modéle LDA avec ",num_topics," topics")
         model=gensim.models.LdaMulticore(corpus=corpus,id2word=dictionary,num_topics=num_topics)
         model_list.append(model)
         coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
@@ -97,23 +109,29 @@ def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
 
 
 
-@st.cache 
-#focntion qui renvoie le nombre de topic optimal en utilisant la méthode du score de coherence
-def find_optimal_number_of_topics( model_list, coherence_values):
-    optimal_number_topic=0
-    croissante=False
-    optimal_index=0
-    optimal_value=coherence_values[0]
-    for i in range(1,(len(coherence_values))):
-        if(croissante==False)and(coherence_values[i]>optimal_value):
-            croissante=True
-            optimal_value=coherence_values[i]
-            optimal_index=i
-        elif(croissante==True)and(coherence_values[i]>optimal_value):
-            optimal_value=coherence_values[i]
-            optimal_index=i
-        elif(coherence_values[i]<optimal_value)and(croissante==True):
-            break
+ 
+"""focntion qui renvoie le nombre de topic optimal en utilisant la méthode du score de coherence
+ainsi que le score de cohérence correspondant
+"""""
+@st.cache
+def find_optimal_number_of_topics(coherence_values):
+    croissante=False #au début on suppose que la fonction du score de cohérence n'est pas croissante
+    optimal_index=0 #on suppose que le nombre optimal de topic est 2
+    optimal_score=coherence_values[0]
 
-    optimal_number_topic=optimal_index+2    
-    return optimal_number_topic
+    for i in range(1,len(coherence_values)):
+        if(croissante==False):
+            if(coherence_values[i]>optimal_score):
+                croissante=True
+                optimal_index=i
+                optimal_score=coherence_values[i]
+        else:
+            if(coherence_values[i]>optimal_score):
+                optimal_index=i
+                optimal_score=coherence_values[i]
+            elif(coherence_values[i]<optimal_score):
+                optimal_index=optimal_index+2
+                return optimal_index,optimal_score
+    
+    optimal_index=optimal_index+2
+    return optimal_index,optimal_score
