@@ -17,14 +17,13 @@ import os
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
 
 import streamlit as st
+from PIL import Image
 
 from twitter_scrapping import scrapping_modules
 from data_modules import preproc_modules
 from data_modules import eda_modules
 from ressources import ressources_modules
 from topic_modeling import tm_modules
-from PIL import Image
-
 # ---------------------------
 
 # Chemin de sauvegarde des fichiers générés :
@@ -73,11 +72,13 @@ custom_stopwords = preproc_modules.load_custom_stopwords()
 # 
 nlp = spacy.load("fr_core_news_lg")
 
+
 ## Début application
 
 #titleContainer,image=st.columns(2)
 #with titleContainer:
 st.title("Interface d'analyse de tweets")
+st.text("")
 
 #####
 #with image:
@@ -86,15 +87,16 @@ st.title("Interface d'analyse de tweets")
 
 
 # Containers
-#tweetsFetching = st.container()
 dataExploration = st.container()
-analyseAvancée = st.container()
+topicModeling = st.container()
+sentimentAnalysis= st.container()
+
 
 charger=False
 tweet_tokens=None
 
 # Partie I : Récupération des tweets à analyser
-#with tweetsFetching:
+
 with st.sidebar:
     st.subheader("Chargement des données")
     with st.expander("Recherche par mots clés"):
@@ -181,8 +183,7 @@ with st.sidebar:
 # Partie II : Nettoyage et exploration des données
 with dataExploration :
     st.subheader("Exploration des données")
-    #try:
-        # nettoyage
+    # nettoyage
     if(charger!=False):
         preproc_modules.language_selection(df)
         preproc_modules.basic_preproc(df, ['date', 'time', 'tweet', 'hashtags', 'username', 'name','retweet', 'geo'])
@@ -193,7 +194,7 @@ with dataExploration :
 
         # exploration
         # Affichage des mots les plus représentatifs du corpus
-        st.text("Mots représentatifs du benchmark")
+        st.text("Mots les plus fréquents dans les tweets extraits")
 
         # On regroupe les tokens sous forme d'une unique chaîne
         temp_words = []
@@ -227,7 +228,7 @@ with dataExploration :
         #except:
             #st.error("Le document n'a pas pu être lu ou alors il est erroné. Veuillez le recharger ou refaire une recherche !")
     else:
-        st.info("Veuillez charger vos données afin de les visualiser")
+        st.info("Veuillez charger vos données afin de les visualiser !")
 # ===========================================
 # Partie III : Analyse avancée
 with st.sidebar:
@@ -242,19 +243,28 @@ with st.sidebar:
         nbr_topics = st.number_input('choisissez un nombre de thématiques',min_value=2, max_value=20)
     
 
-with analyseAvancée:
+with topicModeling:
     st.subheader("Découverte des thématiques")
     if(modele=='LDA'):
             if(tweet_tokens!=None):
                 #on commence par créer le dictionnaire ainsi qu'une sorte de matrice documents-termes
                 corpus,disct=tm_modules.create_freq_Doc_Term(tweet_tokens)
+                model_list, coherence_values=tm_modules.compute_coherence_values(disct, corpus, tweet_tokens, 4, start=2, step=3)
+                number=tm_modules.find_optimal_number_of_topics(model_list, coherence_values)
+                st.write("SUGGESTION: le meilleur nombre de topic est ",number," !")
+
+
+
+
                 #construire le modele LDA
                 LDA_model=tm_modules.build_LDA_model(corpus,disct,nbr_topics)
                 le=tm_modules.plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics)
                 st.pyplot(fig=le)
             else:
-                st.info("Veuillez charger vos données pour la découverte de thématiques")
+                st.info("Veuillez charger vos données pour découvrir les sujets abordés!")
 
 
-
+with sentimentAnalysis:
+    st.subheader("Analyse de sentiments")
+    st.info("Veuillez charger vos données pour connaitre les sentiments des personnes !")
 

@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.colors as mcolors
 import streamlit as st
+from gensim.models import CoherenceModel
 
 
 def create_freq_Doc_Term(data):
@@ -81,4 +82,38 @@ def plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics):
     return fig
 
 
+#fonction qui calcul le score de coherence pour différents nombre de topics
+def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
+    
+    coherence_values = []#liste pour stocker les différents score de cohérence
+    model_list = []#liste pour garder les modéle généré avec différents nombre de topic
+    for num_topics in range(start, limit, step):
+        model=gensim.models.LdaMulticore(corpus=corpus,id2word=dictionary,num_topics=num_topics)
+        model_list.append(model)
+        coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
+        coherence_values.append(coherencemodel.get_coherence())
+
+    return model_list, coherence_values
+
+
+
+@st.cache 
 #focntion qui renvoie le nombre de topic optimal en utilisant la méthode du score de coherence
+def find_optimal_number_of_topics( model_list, coherence_values):
+    optimal_number_topic=0
+    croissante=False
+    optimal_index=0
+    optimal_value=coherence_values[0]
+    for i in range(1,(len(coherence_values))):
+        if(croissante==False)and(coherence_values[i]>optimal_value):
+            croissante=True
+            optimal_value=coherence_values[i]
+            optimal_index=i
+        elif(croissante==True)and(coherence_values[i]>optimal_value):
+            optimal_value=coherence_values[i]
+            optimal_index=i
+        elif(coherence_values[i]<optimal_value)and(croissante==True):
+            break
+
+    optimal_number_topic=optimal_index+2    
+    return optimal_number_topic
