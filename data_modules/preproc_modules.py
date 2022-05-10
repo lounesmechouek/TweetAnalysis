@@ -15,7 +15,7 @@ def language_selection(df, lang='fr'):
     '''
     return df[df['language']==lang]
 
-
+@st.cache 
 def basic_preproc(df, important_attr):
     """
     supprime les enregistrements ayant des valeurs manquantes, 
@@ -41,7 +41,7 @@ def clean(doc):
     and (token.ent_type_ != "GPE") 
   ]
 
-
+@st.cache 
 def tokenization(tweets, nlp):
     ''' Renvoie une liste de tokens pour chaque tweets ainsi que le vocabulaire global
     tweets : liste ou itérable de tweets

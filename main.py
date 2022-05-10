@@ -116,6 +116,7 @@ with tweetsFetching:
         if searchDone:
             if searchValue != "" :
                 try:
+                    print (max_tweets_position)
                     path = SAVE_PATH + "miningTwitter_{}.csv".format(searchValue)
                     #ajouter le mot-clé de rechercha à la liste des stop words
                     custom_stopwords.append(searchValue)
