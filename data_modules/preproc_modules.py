@@ -41,7 +41,7 @@ def clean(doc):
     and (token.ent_type_ != "GPE") 
   ]
 
-@st.cache 
+
 def tokenization(tweets, nlp):
     ''' Renvoie une liste de tokens pour chaque tweets ainsi que le vocabulaire global
     tweets : liste ou itérable de tweets

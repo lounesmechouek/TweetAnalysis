@@ -32,8 +32,9 @@ def build_LDA_model(corpus,id2word,nbr_topics):
 def plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics):
 
     #liste de couleurs
-    couleurs = [color for name, color in mcolors.TABLEAU_COLORS.items()]
-
+    couleurs1 = [color for name, color in mcolors.TABLEAU_COLORS.items()]
+    couleurs2=[color for name, color in mcolors.TABLEAU_COLORS.items()]
+    couleurs=couleurs1+couleurs2
     cloud = WordCloud(stopwords=custom_stopwords,
                     background_color='white',
                     width=2500,
@@ -45,12 +46,22 @@ def plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics):
 
     #topics liste dont chaque element est un tuple, le 1er element du tuple est l'id du topic
     #le 2eme element est une liste de tuple, tel que le 1 er element représente un mot représentatif du topic et le 2eme element son poids
-    topics = LDA_model.show_topics(formatted=False)
 
-    fig, axes = plt.subplots(2, 3, figsize=(10,10), sharex=True, sharey=True)
+    #num_topics paramétre tres important car la fonction show_topics retourne par défaut que 10 topics
+    topics = LDA_model.show_topics(formatted=False,num_topics=nbr_topics)
+    print("le nombre de topics",len(topics))
+    print(topics)
+    #calcul du nombre de ligne du subplot 
+    if((nbr_topics%3)==0):
+        nb_row=nbr_topics//3
+    else:
+        nb_row=(nbr_topics//3)+1
+
+    print ("le nombre de lignes",nb_row)
+    fig, axes = plt.subplots(nb_row, 3, figsize=(10,10), sharex=True, sharey=True)
 
     for i, ax in enumerate(axes.flatten()):
-        
+        print("**************************",i)
         if(i<=nbr_topics-1):
             fig.add_subplot(ax)
             topic_words = dict(topics[i][1])#ca me fait une erreur car il crée 4 sous plot alors qu'il y a 3 topics du coup il trouve pas quoi mettre dans le dernier subplot
@@ -70,4 +81,4 @@ def plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics):
     return fig
 
 
-#focntion qui renvoie le nombre de topic optimal en utilisant la méthode du score
+#focntion qui renvoie le nombre de topic optimal en utilisant la méthode du score de coherence

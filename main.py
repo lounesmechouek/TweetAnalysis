@@ -35,13 +35,30 @@ SAVE_PATH = '../../outputs/'
 curr_path = os.path.dirname(__file__)
 logo_path = curr_path+'/twitter_logo.png'
 
-# set page layout
+# définition du layout de la page
 st.set_page_config(
     page_title="Tweets Analysis",
     page_icon="📈",
     layout="centered",# or "wide" pour utiliser l'ecran tout entier .
     initial_sidebar_state="expanded"
 )
+
+#configuration de la taille de sidebar
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child{
+        width: 700px;
+    }
+    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child{
+        width: 400px;
+        margin-left: -400px;
+    }
+     
+    """,
+    unsafe_allow_html=True,
+)
+
 allPositionsGeographiques=None
 
 # Variable regroupant quelques positions géographiques (les plus importantes communes de France)
@@ -64,19 +81,21 @@ st.title("Interface d'analyse de tweets")
 
 #####
 #with image:
- #   image = Image.open(logo_path)
-  #  st.image(image,width=100)
+#image = Image.open(logo_path)
+    #st.image(image,width=50)
 
 
 # Containers
-tweetsFetching = st.container()
+#tweetsFetching = st.container()
 dataExploration = st.container()
 analyseAvancée = st.container()
 
 charger=False
 tweet_tokens=None
+
 # Partie I : Récupération des tweets à analyser
-with tweetsFetching:
+#with tweetsFetching:
+with st.sidebar:
     st.subheader("Chargement des données")
     with st.expander("Recherche par mots clés"):
         searchValue = st.text_input('Mots à rechercher', placeholder='Exemple : Présidentielles 2022')
@@ -211,20 +230,21 @@ with dataExploration :
         st.info("Veuillez charger vos données afin de les visualiser")
 # ===========================================
 # Partie III : Analyse avancée
-with analyseAvancée:
+with st.sidebar:
     st.subheader("Analyse Avancée")
 
     gauche,droite=st.columns(2)
 
     with gauche:
         modele = st.selectbox('Modélisation par thématique avec :',('LDA', 'NMF'))
-        topics_button= st.button(label = "Découvrir les thématiques !") 
+        #topics_button= st.button(label = "Découvrir les thématiques !") 
     with droite:
         nbr_topics = st.number_input('choisissez un nombre de thématiques',min_value=2, max_value=20)
     
+
+with analyseAvancée:
+    st.subheader("Découverte des thématiques")
     if(modele=='LDA'):
-        if (topics_button==True):
-            searchDone=True
             if(tweet_tokens!=None):
                 #on commence par créer le dictionnaire ainsi qu'une sorte de matrice documents-termes
                 corpus,disct=tm_modules.create_freq_Doc_Term(tweet_tokens)
@@ -234,7 +254,6 @@ with analyseAvancée:
                 st.pyplot(fig=le)
             else:
                 st.info("Veuillez charger vos données pour la découverte de thématiques")
-    #else:
 
 
 
