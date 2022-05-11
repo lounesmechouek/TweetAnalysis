@@ -7,6 +7,8 @@ import re
 from unidecode import unidecode
 import streamlit as st
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 
 
 def language_selection(df, lang='fr'):
@@ -124,6 +126,28 @@ def remove_stopwords(tkns, nlp, custom_stopwords=[]):
     
     return final_tokens,MYvocabulary
 
+def vectorization(tokens, nlp , custom_stopwords=[]):
+    '''Retourne une matrice sparce (terme-document)
+    tokens : doit être un itérable de chaines de caractères ["","","",...,""]
+    
+    Les différentes prétraitements doivent être faits antérieurement à l'appel de cette fonction (stop-words, tokenisation, etc.)
+    '''
+    vectorizer = TfidfVectorizer()
+    X_tdf = vectorizer.fit_transform(tokens)
+
+    return X_tdf
+
+
+def get_tokens_as_listChar(tokens):
+    '''Prend des tokens sous forme de liste de listes et les renvoie sous forme de liste de chaines
+    '''
+    list_words = []
+    for tkn in tokens:
+        list_words.append(" ".join(tkn))
+
+    return list_words
+
+
 def load_custom_stopwords():
     return [
         "",
@@ -187,5 +211,6 @@ def load_custom_stopwords():
         'mdrrr',
         'trop',
         'mot',
-        'bon'
+        'aSSa',
+        'bon',
     ]

@@ -9,23 +9,24 @@ import spacy
 import datetime
 
 import matplotlib.pyplot as plt
-from wordcloud import WordCloud
-import plotly
-import seaborn as sns
 import os
-
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
-
+from spacy.tokens import Token
 import streamlit as st
-from PIL import Image
+import nltk
+from nltk.stem import WordNetLemmatizer 
 
 from twitter_scrapping import scrapping_modules
 from data_modules import preproc_modules
 from data_modules import eda_modules
 from ressources import ressources_modules
 from topic_modeling import tm_modules
-# ---------------------------
+from sentiment_analysis import sa_modules
 
+
+from spacy.attrs import ORTH
+from sklearn.decomposition import NMF
+
+# ---------------------------
 # Chemin de sauvegarde des fichiers générés :
 # L'exécution se fait depuis twtan/Scripts
 SAVE_PATH = '../../outputs/'
@@ -42,7 +43,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-#configuration de la taille de sidebar
+
+# Configuration de la taille de sidebar
 st.markdown(
     """
     <style>
@@ -58,7 +60,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Variables globales
 allPositionsGeographiques=None
+charger=False
+tweet_tokens=None
 
 # Variable regroupant quelques positions géographiques (les plus importantes communes de France)
 try:
@@ -69,12 +74,11 @@ except:
 # Liste customisée de stop_words :
 custom_stopwords = preproc_modules.load_custom_stopwords()
 
-# 
+#tokenisation 
 nlp = spacy.load("fr_core_news_lg")
 
 
 ## Début application
-
 #titleContainer,image=st.columns(2)
 #with titleContainer:
 st.title("Interface d'analyse de tweets")
@@ -85,15 +89,10 @@ st.text("")
 #image = Image.open(logo_path)
     #st.image(image,width=50)
 
-
 # Containers
 dataExploration = st.container()
 topicModeling = st.container()
 sentimentAnalysis= st.container()
-
-
-charger=False
-tweet_tokens=None
 
 # Partie I : Récupération des tweets à analyser
 
@@ -139,25 +138,38 @@ with st.sidebar:
                 try:
                     print (max_tweets_position)
                     path = SAVE_PATH + "miningTwitter_{}.csv".format(searchValue)
-                    #ajouter le mot-clé de rechercha à la liste des stop words
-                    custom_stopwords.append(searchValue)
+                    # Ajout du mot-clé de rechercha à la liste des stop words
+                    #===================================
+                    lemmatizer = WordNetLemmatizer()
+                    Lem_searchValue=lemmatizer.lemmatize(searchValue)
+                    custom_stopwords += Lem_searchValue.lower()
+                    #===========================================
                     #nest_asyncio.apply()
-
-                    scrapping_modules.get_tweets(
-                        max_tweets_position,
-                        searchValue,
-                        path,
-                        dateDebut.strftime("%Y-%m-%d"),
-                        dateFin.strftime("%Y-%m-%d"),
-                        [allPositionsGeographiques[k] for k in positionsGeographiques]
-                    )
+                    if 'Peu importe' in positionsGeographiques:
+                        scrapping_modules.get_tweets(
+                            max_tweets_position,
+                            searchValue,
+                            path,
+                            dateDebut.strftime("%Y-%m-%d"),
+                            dateFin.strftime("%Y-%m-%d"),
+                            [allPositionsGeographiques[k] for k in list(allPositionsGeographiques.keys()) if k != 'Peu importe']
+                        )
+                    else:
+                        scrapping_modules.get_tweets(
+                            max_tweets_position,
+                            searchValue,
+                            path,
+                            dateDebut.strftime("%Y-%m-%d"),
+                            dateFin.strftime("%Y-%m-%d"),
+                            [allPositionsGeographiques[k] for k in positionsGeographiques]
+                        )
 
                     st.success('Récupération de tweets terminée avec succès !')
 
                     # On lit les données récupérées
                     
                     try:
-                        input = pd.read_csv(path)
+                        input = pd.read_csv(path, encoding = 'utf-8')
                         df = input.copy()
                         charger=True
                         if "Unnamed: 0" in df.columns: df.drop("Unnamed: 0",inplace=True,axis=1)
@@ -173,8 +185,9 @@ with st.sidebar:
         filename = st.file_uploader('Uploader le fichier')
         try:
             if filename is not None:
-                input = pd.read_csv(filename)
+                input = pd.read_csv(filename, encoding = 'unicode_escape')
                 df = input.copy()
+                charger=True
                 if "Unnamed: 0" in df.columns: df.drop("Unnamed: 0",inplace=True,axis=1)
         except FileNotFoundError:
             st.error('File not found.')
@@ -188,9 +201,12 @@ with dataExploration :
         preproc_modules.language_selection(df)
         preproc_modules.basic_preproc(df, ['date', 'time', 'tweet', 'hashtags', 'username', 'name','retweet', 'geo'])
         tweet_tokens, vocab = preproc_modules.tokenization(tweets = df['tweet'], nlp = nlp)
-
+        print("pleaseeeeeeeeeeeeeeeee god !")
+        print(tweet_tokens)
         #il faut mettre à jour le vocabulaire issu de la tokenisation en supprimant les stop words
         tweet_tokens,NewVocab = preproc_modules.remove_stopwords(tweet_tokens, nlp, custom_stopwords)
+    
+        
 
         # exploration
         # Affichage des mots les plus représentatifs du corpus
@@ -219,7 +235,7 @@ with dataExploration :
         mentions = eda_modules.get_topmentions(df['tweet'])
 
         plot = eda_modules.barplot_from_data(mentions.head(6), x='mention', y='occurences')
-        st.pyplot(plt)
+        st.pyplot(plot)
 
         # Map
         st.text("Répartition des discussions autour du sujet par localités")
@@ -238,12 +254,15 @@ with st.sidebar:
 
    
     with droite:
-        methode_nb_topic=st.selectbox('Méthode du choix du nombre de thématiques:',('Score de cohérance', 'choisi par l\'utilisateur'))
+        methode_nb_topic=st.selectbox('Comment déterminer le nombre de thèmes ?',('Score de cohérence optimal', 'Choix de l\'utilisateur'))
 
     with gauche:
         modele = st.selectbox('Modélisation par thématique avec :',('LDA', 'NMF'))
-        if(methode_nb_topic=='choisi par l\'utilisateur'):
-            nbr_topics = st.number_input('choisissez un nombre de thématiques',min_value=2, max_value=20)
+        nbr_topics = 2
+        topic_dict = {}
+        if(methode_nb_topic=='Choix de l\'utilisateur'):
+            nbr_topics = st.number_input('Veuillez choisir le nombre de thématiques',min_value=2, max_value=20)
+    
     
 
 with topicModeling:
@@ -254,27 +273,88 @@ with topicModeling:
                 corpus,disct=tm_modules.create_freq_Doc_Term(tweet_tokens)
                 
                 #vérifier la méthode choisi par l'utilisateur pour le choix du nombre de topics 
-                if(methode_nb_topic=='Score de cohérance'):
+                if(methode_nb_topic=='Score de cohérence optimal'):
                     model_list, coherence_values=tm_modules.compute_coherence_values(disct, corpus, tweet_tokens, 8, start=2, step=1)
                     optimal_number_of_topics,optimal_score=tm_modules.find_optimal_number_of_topics(coherence_values)
-                    st.write("le meilleur nombre de thèmatiques est: ",optimal_number_of_topics)
-                    st.write("le score de cohérence correspondant est : ",optimal_score)
+                    topic_dict = {i : 'Thème '+str(i+1) for i in range(int(optimal_number_of_topics))}
+                    st.write("Le meilleur nombre de thèmatiques est: ",optimal_number_of_topics)
+                    st.write("Le score de cohérence correspondant est : ",optimal_score)
                     #construire le modele LDA
                     #LDA_model=tm_modules.build_LDA_model(corpus,disct,number)
                     LDA_model=model_list[optimal_number_of_topics-2]
                     le=tm_modules.plot_top_words_topic(LDA_model,custom_stopwords,optimal_number_of_topics)
                     st.pyplot(fig=le)
                 else:
+                    topic_dict = {i : 'Thème '+str(i+1) for i in range(nbr_topics)}
                     LDA_model=tm_modules.build_LDA_model(corpus,disct,nbr_topics)
                     coherence_score=tm_modules.calcul_coherence_score(LDA_model,tweet_tokens,disct)
-                    st.write("le score de cohérence correspondant est : ",coherence_score)
+                    st.write("Le score de cohérence correspondant est : ",coherence_score)
                     le=tm_modules.plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics)
                     st.pyplot(fig=le)
             else:
                 st.info("Veuillez charger vos données pour découvrir les sujets abordés!")
     elif(modele=='NMF'):
-        st.text('comming soon')
+        #if(tweet_tokens!=None):
+            #nbr_topics = st.number_input('Veuillez choisir le nombre de thématiques',min_value=2, max_value=20)
+            #create TF-IDF matrix
+            #TF_IDF=tm_modules.create_TF_IDF(tweet_tokens)
+            #NMF_model = NMF(n_components=10, random_state=42)
+            #NMF_model.fit(TF_IDF)
+            #nmf_features = NMF_model.transform(TF_IDF)
+        #else:
+            #st.info("Veuillez charger vos données pour découvrir les sujets abordés!")
+        st.text("comming soon")
+
+
+
+
+
+
+
+with st.sidebar:
+    st.text("Sentiments des utilisateurs")
+    if(topic_dict):
+        selected_topic = st.selectbox(
+            "Veuillez choisir un thème à analyser",
+            list(topic_dict.values())
+        )
+    else:
+        st.info("Chargement des données...")
 
 with sentimentAnalysis:
     st.subheader("Analyse de sentiments")
-    st.info("Veuillez charger vos données pour connaitre les sentiments des personnes !")
+
+    polarity_dict = {
+        0: 'négatif',
+        1: 'positif'
+    }
+
+    if(modele=='LDA'):
+        if(tweet_tokens!=None):
+            term_doc = sa_modules.load_vectors()
+            classifier = sa_modules.load_sa_model('Logistic_Regression')
+            tokens_as_str = preproc_modules.get_tokens_as_listChar(tweet_tokens)
+            new_vectors = sa_modules.adapt_to_model(term_doc, tokens_as_str)
+
+            predicted_sentiments = classifier.predict(new_vectors)
+
+            indx = list(topic_dict.keys())[list(topic_dict.values()).index(selected_topic)]
+            st.text("Opinions glbales (pour tous les thèmes)")
+
+            sr_preds = pd.Series(predicted_sentiments).value_counts()
+            somme = sr_preds[0]+sr_preds[1]
+            fig = eda_modules.simple_barplot(pd.DataFrame.from_dict([{polarity_dict[i]:(sr_preds[i]/somme)*100 for i in range(len(polarity_dict))}]))
+            st.pyplot(fig)
+
+            st.text("Opinions pour le "+topic_dict[indx])
+
+
+            print(12*'+++++')
+            print(len(predicted_sentiments))
+            print(predicted_sentiments)
+            print(12*'+++++')
+
+        else:
+            st.info("Veuillez charger vos données pour connaitre les sentiments des personnes !")
+    elif(modele=='NMF'):
+        st.text('comming soon')
