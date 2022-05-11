@@ -9,15 +9,13 @@ import streamlit as st
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-
-
 def language_selection(df, lang='fr'):
     '''Enlève les tweets qui ne sont pas dans les langues "lang"
     lang : langue des tweets à garder
     '''
     return df[df['language']==lang]
 
-@st.cache 
+
 def basic_preproc(df, important_attr):
     """
     supprime les enregistrements ayant des valeurs manquantes, 
@@ -42,7 +40,6 @@ def clean(doc):
     and(not token.is_stop)#si on l'ajoute pas ici il va ajouter les tokens comme .apres
     and (token.ent_type_ != "GPE") 
   ]
-
 
 def tokenization(tweets, nlp):
     ''' Renvoie une liste de tokens pour chaque tweets ainsi que le vocabulaire global
@@ -92,7 +89,6 @@ def tokenization(tweets, nlp):
     print("TAILLE DU VOCABULAIRE:", len(vocabulary))
 
     return tokens, vocabulary
-
 
 def remove_stopwords(tkns, nlp, custom_stopwords=[]):
     '''Enlève, parmi les tokens, ceux qui sont des stop words

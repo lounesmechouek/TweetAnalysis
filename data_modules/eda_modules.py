@@ -6,7 +6,6 @@ import seaborn as sns
 from streamlit_folium import folium_static
 import folium
 import random
-import streamlit as st
 
 
 def word_cloud_from_text(text, nlp, custom_stopwords, titre=""):
@@ -76,10 +75,18 @@ def map_from_locations(geoTweets):
     m = folium.Map(location=[46.227638, 2.213749], zoom_start=5.5) # latitude et longitude du centre de la France
     mean = grouped_locations['occ'].mean() 
 
+    if mean<10:
+        facteur=500
+    elif mean>=10 and mean<250:
+        facteur=250
+    elif mean>=250 and mean<1000:
+        facteur=mean  
+    else:
+        facteur=mean/2
 
     for i in range(len(grouped_locations)):
         folium.Circle(
-            radius=int(grouped_locations.loc[i].occ)*mean/2,
+            radius=int(grouped_locations.loc[i].occ)*facteur,
             location=[float(grouped_locations.loc[i].lat), float(grouped_locations.loc[i].lon)],
             color=generate_random_color(),
             fill=True,

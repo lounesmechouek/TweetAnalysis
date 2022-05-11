@@ -51,6 +51,8 @@ pip.exe install streamlit-folium==0.6.7
 
 **Step 3.** Run the project :
 
+You need to first create a folder named **outputs** in the root folder of the project (this is where the mined tweets will be stored as csv files)
+
 From the folder **twtan/Scripts** :
 
 ```console

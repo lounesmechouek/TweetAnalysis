@@ -10,7 +10,6 @@ import matplotlib.colors as mcolors
 import streamlit as st
 from gensim.models import CoherenceModel
 
-
 def create_freq_Doc_Term(data):
     #créer un dictionnaire
     id2word = corpora.Dictionary(data)
@@ -88,6 +87,20 @@ def get_words_topic_from_ldamodel(ldamodel, numtopic):
     return {elt.split("*")[1].replace('"',''):elt.split("*")[0] for elt in wds_as_list}
 
 
+def get_topics_tweets_lda(lda_model, bag_words):
+    '''Retourne une liste de int. Chacun représente le topic contribuant le plus au tweet de cette position-là
+    lda_model : objet de type LDAMulticore
+    bag_words : terme-document sous format doc2bow
+    '''
+    topic_per_doc = []
+    for i, liste_contributions in enumerate(lda_model[bag_words]):
+        # On trie par contribution la plus élevée
+        sorted_contribs = sorted(liste_contributions, key=lambda x: (x[1]), reverse=True)
+        # On récupère l'indice du topic qui contribue le plus
+        topic_per_doc.append(sorted_contribs[0][0])
+    
+    return topic_per_doc
+    
 def plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics):
     #liste de couleurs
     couleurs1 = [color for name, color in mcolors.TABLEAU_COLORS.items()]

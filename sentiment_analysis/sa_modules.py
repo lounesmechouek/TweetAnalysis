@@ -1,5 +1,6 @@
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
 import pickle
+import streamlit as st
 
 def load_vectors():
     loaded_vec = CountVectorizer(vocabulary=pickle.load(open("../../sentiment_analysis/modeles/tfidf.sav", "rb"))) # chemin depuis twtan/Scripts
@@ -15,7 +16,7 @@ def load_sa_model(model_name):
         model = pickle.load(open('../../sentiment_analysis/modeles/'+model_name+'_Model.sav', "rb"))
 
     return model
-    
+
 def adapt_to_model(loaded_vectors, tokens):
     '''Créee une matrice terme-document adaptée au vocabulaire du model utilisé pour le training
     tokens : doit être un itérable de chaines de caractères ["","","",...,""]

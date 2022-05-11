@@ -57,6 +57,7 @@ st.markdown(
 allPositionsGeographiques=None
 charger=False
 tweet_tokens=None
+#selected_topic = "Thème 1"
 
 # Variable regroupant quelques positions géographiques (les plus importantes communes de France)
 try:
@@ -159,7 +160,7 @@ with st.sidebar:
                     # On lit les données récupérées
                     
                     try:
-                        input = pd.read_csv(path, encoding = 'unicode_escape')
+                        input = pd.read_csv(path)
                         df = input.copy()
                         charger=True
                         if "Unnamed: 0" in df.columns: df.drop("Unnamed: 0",inplace=True,axis=1)
@@ -175,7 +176,7 @@ with st.sidebar:
         filename = st.file_uploader('Uploader le fichier')
         try:
             if filename is not None:
-                input = pd.read_csv(filename, encoding = 'unicode_escape')
+                input = pd.read_csv(filename)
                 df = input.copy()
                 charger=True
                 if "Unnamed: 0" in df.columns: df.drop("Unnamed: 0",inplace=True,axis=1)
@@ -269,6 +270,9 @@ with topicModeling:
                     #construire le modele LDA
                     #LDA_model=tm_modules.build_LDA_model(corpus,disct,number)
                     LDA_model=model_list[optimal_number_of_topics-2]
+
+                    topics_by_tweets = tm_modules.get_topics_tweets_lda(LDA_model, corpus)
+
                     le=tm_modules.plot_top_words_topic(LDA_model,custom_stopwords,optimal_number_of_topics)
                     st.pyplot(fig=le)
                 else:
@@ -283,15 +287,6 @@ with topicModeling:
     elif(modele=='NMF'):
         st.text('comming soon')
 
-with st.sidebar:
-    st.text("Sentiments des utilisateurs")
-    if(topic_dict):
-        selected_topic = st.selectbox(
-            "Veuillez choisir un thème à analyser",
-            list(topic_dict.values())
-        )
-    else:
-        st.info("Chargement des données...")
 
 with sentimentAnalysis:
     st.subheader("Analyse de sentiments")
@@ -310,22 +305,38 @@ with sentimentAnalysis:
 
             predicted_sentiments = classifier.predict(new_vectors)
 
-            indx = list(topic_dict.keys())[list(topic_dict.values()).index(selected_topic)]
-            st.text("Opinions glbales (pour tous les thèmes)")
+            #indx = list(topic_dict.keys())[list(topic_dict.values()).index(selected_topic)]
+            st.text("Opinions globales (pour tous les thèmes)")
 
             sr_preds = pd.Series(predicted_sentiments).value_counts()
             somme = sr_preds[0]+sr_preds[1]
-            fig = eda_modules.simple_barplot(pd.DataFrame.from_dict([{polarity_dict[i]:(sr_preds[i]/somme)*100 for i in range(len(polarity_dict))}]))
-            st.pyplot(fig)
+            fig2 = eda_modules.simple_barplot(pd.DataFrame.from_dict([{polarity_dict[i]:(sr_preds[i]/somme)*100 for i in range(len(polarity_dict))}]))
+            st.pyplot(fig2)
 
-            st.text("Opinions pour le "+topic_dict[indx])
+            st.text("Opinions par thèmes")
 
+            col1, col2 = st.columns(2)
 
-            print(12*'+++++')
-            print(len(predicted_sentiments))
-            print(predicted_sentiments)
-            print(12*'+++++')
-
+            with col1:
+                for k in range(len(topic_dict)):
+                    if k%2==0:
+                        preds_for_topic = [predicted_sentiments[i] for i in range(len(topics_by_tweets)) if topics_by_tweets[i]==k]
+                        sr_preds_for_topic = pd.Series(preds_for_topic).value_counts()
+                        somme = sr_preds_for_topic[0]+sr_preds_for_topic[1]
+                        fig3 = eda_modules.simple_barplot(pd.DataFrame.from_dict([{polarity_dict[i]:(sr_preds_for_topic[i]/somme)*100 for i in range(len(polarity_dict))}]))
+                        st.pyplot(fig3)
+                        st.text(topic_dict[k])
+            
+            with col2:
+                for j in range(len(topic_dict)):
+                    if j%2!=0:
+                        preds_for_topic = [predicted_sentiments[i] for i in range(len(topics_by_tweets)) if topics_by_tweets[i]==j]
+                        sr_preds_for_topic = pd.Series(preds_for_topic).value_counts()
+                        somme = sr_preds_for_topic[0]+sr_preds_for_topic[1]
+                        fig4 = eda_modules.simple_barplot(pd.DataFrame.from_dict([{polarity_dict[i]:(sr_preds_for_topic[i]/somme)*100 for i in range(len(polarity_dict))}]))
+                        st.pyplot(fig4)
+                        st.text(topic_dict[j])
+       
         else:
             st.info("Veuillez charger vos données pour connaitre les sentiments des personnes !")
     elif(modele=='NMF'):
