@@ -8,6 +8,7 @@ import matplotlib.colors as mcolors
 import streamlit as st
 from gensim.models import CoherenceModel
 
+#****************************************************************LDA****************************************************************
 
 def create_freq_Doc_Term(data):
     #créer un dictionnaire
@@ -135,3 +136,27 @@ def find_optimal_number_of_topics(coherence_values):
     
     optimal_index=optimal_index+2
     return optimal_index,optimal_score
+
+
+
+#****************************************************************NMF****************************************************************
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from data_modules import preproc_modules
+
+from sklearn.decomposition import NMF
+
+def NMF(tweet_tokens):
+    #créer la matrice tf-idf
+    vectorizer = TfidfVectorizer( )
+    X_tfidf = vectorizer.fit_transform(tweet_tokens)
+    #X_tfidf.shape
+    model=NMF(n_components=4,random_state=42)
+    model.fit(X_tfidf)
+    nmf_features=model.transform(X_tfidf)
+    components_df = pd.DataFrame(model.components_, columns=vectorizer.get_feature_names())
+    for topic in range(components_df.shape[0]):
+        tmp = components_df.iloc[topic]
+        print(f'For topic {topic+1} the words with the highest value are:')
+        print(tmp.nlargest(10))
+        print('\n')

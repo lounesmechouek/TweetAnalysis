@@ -259,8 +259,6 @@ with topicModeling:
                     optimal_number_of_topics,optimal_score=tm_modules.find_optimal_number_of_topics(coherence_values)
                     st.write("le meilleur nombre de thèmatiques est: ",optimal_number_of_topics)
                     st.write("le score de cohérence correspondant est : ",optimal_score)
-                    #construire le modele LDA
-                    #LDA_model=tm_modules.build_LDA_model(corpus,disct,number)
                     LDA_model=model_list[optimal_number_of_topics-2]
                     le=tm_modules.plot_top_words_topic(LDA_model,custom_stopwords,optimal_number_of_topics)
                     st.pyplot(fig=le)
@@ -273,6 +271,7 @@ with topicModeling:
             else:
                 st.info("Veuillez charger vos données pour découvrir les sujets abordés!")
     elif(modele=='NMF'):
+        tm_modules.NMF(tweet_tokens)
         st.text('comming soon')
 
 with sentimentAnalysis:
