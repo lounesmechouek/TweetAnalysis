@@ -27,8 +27,7 @@ def barplot_from_data(data, x, y):
     data : données en deux dimensions [x, y]
     '''
     fig, ax = plt.subplots()
-    #sns.barplot(x=x, y=y, data=data, ax=ax)
-    sns.barplot(x=y, y=x, data=data, ax=ax)
+    sns.barplot(x=x, y=y, data=data, ax=ax)
     return fig
 
 
@@ -64,15 +63,12 @@ def map_from_locations(geoTweets):
     m = folium.Map(location=[46.227638, 2.213749], zoom_start=5.5) # latitude et longitude du centre de la France
     var = grouped_locations['occ'].std() 
     mean = grouped_locations['occ'].mean() 
-    max_value = grouped_locations['occ'].max()
-    print(type(max_value))
+
 
     for i in range(len(grouped_locations)):
         folium.Circle(
             #radius=int(grouped_locations.loc[i].occ)*mean,
-            #radius=(int(grouped_locations.loc[i].occ)*int(10000))//max_value,
             radius=int(grouped_locations.loc[i].occ),
-            
             location=[float(grouped_locations.loc[i].lat), float(grouped_locations.loc[i].lon)],
             color=generate_random_color(),
             fill=True,
@@ -90,7 +86,3 @@ def generate_random_color():
 
     
 
-    
-    
-
-   

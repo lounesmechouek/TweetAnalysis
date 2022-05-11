@@ -17,5 +17,3 @@ def get_tweets(nb_max_tweet, my_search, raw_corpus_filePath, date_Begin, date_En
     for g in geo:
         # Les tweets sont insérés à la fin du fichier cible
         runFetch.fetch_tweets(since=date_Begin, until=date_End, geo=g)
-    
-    
