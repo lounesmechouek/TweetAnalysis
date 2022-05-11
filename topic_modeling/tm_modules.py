@@ -9,6 +9,8 @@ from wordcloud import WordCloud, STOPWORDS
 import matplotlib.colors as mcolors
 import streamlit as st
 from gensim.models import CoherenceModel
+from sklearn.feature_extraction.text import TfidfVectorizer
+from itertools import chain
 
 def create_freq_Doc_Term(data):
     #créer un dictionnaire
@@ -135,7 +137,7 @@ def plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics):
         print("**************************",i)
         if(i<=nbr_topics-1):
             fig.add_subplot(ax)
-            topic_words = dict(topics[i][1])#ca me fait une erreur car il crée 4 sous plot alors qu'il y a 3 topics du coup il trouve pas quoi mettre dans le dernier subplot
+            topic_words = dict(topics[i][1])#Réglé:ca me fait une erreur car il crée 4 sous plot alors qu'il y a 3 topics du coup il trouve pas quoi mettre dans le dernier subplot
             cloud.generate_from_frequencies(topic_words, max_font_size=300)
             plt.gca().imshow(cloud)
             plt.gca().set_title('Thème ' + str(i+1), fontdict=dict(size=16))
@@ -152,18 +154,10 @@ def plot_top_words_topic(LDA_model,custom_stopwords,nbr_topics):
     return fig
 
 
+def create_TF_IDF(tweet_tokens):
+    liste_tokens=chain(*tweet_tokens)
+    vectorizer = TfidfVectorizer()
+    X_tfidf = vectorizer.fit_transform(liste_tokens)
+    return X_tfidf
 
-
-
-
-
-
-
-
-
-
-
-
-
- 
 

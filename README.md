@@ -47,6 +47,7 @@ pip.exe install stopwordsiso==0.6.1
 pip.exe install seaborn==0.11.2
 pip.exe install folium==0.12.1.post1
 pip.exe install streamlit-folium==0.6.7
+pip.exe install nltk=3.7
 ```
 
 **Step 3.** Run the project :

@@ -33,7 +33,7 @@ def barplot_from_data(data, x, y):
     data : données en deux dimensions [x, y]
     '''
     fig, ax = plt.subplots()
-    sns.barplot(x=x, y=y, data=data, ax=ax)
+    sns.barplot(x=y, y=x, data=data, ax=ax)
     return fig
 
 def barplot_x_y(x, y):
@@ -100,11 +100,3 @@ def generate_random_color():
     '''
     color = "%06x" % random.randint(0, 0xFFFFFF)
     return '#'+str(color)
-    
-
-    
-
-    
-    
-
-   

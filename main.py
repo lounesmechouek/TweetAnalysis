@@ -10,8 +10,10 @@ import datetime
 
 import matplotlib.pyplot as plt
 import os
-
+from spacy.tokens import Token
 import streamlit as st
+import nltk
+from nltk.stem import WordNetLemmatizer 
 
 from twitter_scrapping import scrapping_modules
 from data_modules import preproc_modules
@@ -19,6 +21,11 @@ from data_modules import eda_modules
 from ressources import ressources_modules
 from topic_modeling import tm_modules
 from sentiment_analysis import sa_modules
+
+
+from spacy.attrs import ORTH
+from sklearn.decomposition import NMF
+
 # ---------------------------
 # Chemin de sauvegarde des fichiers générés :
 # L'exécution se fait depuis twtan/Scripts
@@ -68,7 +75,7 @@ except:
 # Liste customisée de stop_words :
 custom_stopwords = preproc_modules.load_custom_stopwords()
 
-# 
+#tokenisation 
 nlp = spacy.load("fr_core_news_lg")
 
 
@@ -82,7 +89,6 @@ st.text("")
 #with image:
 #image = Image.open(logo_path)
     #st.image(image,width=50)
-
 
 # Containers
 dataExploration = st.container()
@@ -131,10 +137,9 @@ with st.sidebar:
         if searchDone:
             if searchValue != "" :
                 try:
-                    print (max_tweets_position)
+                    #print (max_tweets_position)
                     path = SAVE_PATH + "miningTwitter_{}.csv".format(searchValue)
-                    # Ajout du mot-clé de rechercha à la liste des stop words
-                    custom_stopwords += searchValue
+                    
                     #nest_asyncio.apply()
                     if 'Peu importe' in positionsGeographiques:
                         scrapping_modules.get_tweets(
@@ -169,6 +174,7 @@ with st.sidebar:
 
                 except:
                     st.warning("Une erreur s'est produite lors de la récupération des tweets...")
+                
             else:
                 st.warning("Veuillez saisir un ou plusieurs mots clés valides !")
 
@@ -187,15 +193,22 @@ with st.sidebar:
 # Partie II : Nettoyage et exploration des données
 with dataExploration :
     st.subheader("Exploration des données")
+
+    # Ajout du mot-clé de rechercha à la liste des stop words
+    #===================================
+    #lemmatizer = WordNetLemmatizer()
+    #Lem_searchValue=lemmatizer.lemmatize(searchValue)
+    #custom_stopwords += Lem_searchValue.lower()
+    #===========================================
+
+
     # nettoyage
     if(charger!=False):
         preproc_modules.language_selection(df)
         preproc_modules.basic_preproc(df, ['date', 'time', 'tweet', 'hashtags', 'username', 'name','retweet', 'geo'])
         tweet_tokens, vocab = preproc_modules.tokenization(tweets = df['tweet'], nlp = nlp)
-
-        #il faut mettre à jour le vocabulaire issu de la tokenisation en supprimant les stop words
         tweet_tokens,NewVocab = preproc_modules.remove_stopwords(tweet_tokens, nlp, custom_stopwords)
-
+    
         # exploration
         # Affichage des mots les plus représentatifs du corpus
         st.text("Mots les plus fréquents dans les tweets extraits")
@@ -285,9 +298,16 @@ with topicModeling:
             else:
                 st.info("Veuillez charger vos données pour découvrir les sujets abordés!")
     elif(modele=='NMF'):
-        st.text('comming soon')
-
-
+        #if(tweet_tokens!=None):
+            #nbr_topics = st.number_input('Veuillez choisir le nombre de thématiques',min_value=2, max_value=20)
+            #create TF-IDF matrix
+            #TF_IDF=tm_modules.create_TF_IDF(tweet_tokens)
+            #NMF_model = NMF(n_components=10, random_state=42)
+            #NMF_model.fit(TF_IDF)
+            #nmf_features = NMF_model.transform(TF_IDF)
+        #else:
+            #st.info("Veuillez charger vos données pour découvrir les sujets abordés!")
+        st.text("comming soon")
 with sentimentAnalysis:
     st.subheader("Analyse de sentiments")
 
@@ -341,4 +361,3 @@ with sentimentAnalysis:
             st.info("Veuillez charger vos données pour connaitre les sentiments des personnes !")
     elif(modele=='NMF'):
         st.text('comming soon')
-
