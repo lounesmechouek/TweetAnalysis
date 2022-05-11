@@ -6,6 +6,8 @@ import seaborn as sns
 from streamlit_folium import folium_static
 import folium
 import random
+import streamlit as st
+
 
 def word_cloud_from_text(text, nlp, custom_stopwords, titre=""):
     '''Renvoie un wordcloud à partir du texte
@@ -17,6 +19,14 @@ def word_cloud_from_text(text, nlp, custom_stopwords, titre=""):
     wordcloud = WordCloud(background_color="white", stopwords=stopwords, max_words=50, scale=10).generate_from_text(text)
 
     return wordcloud
+
+
+def simple_barplot(data):
+    '''Renvoie un diagramme en batons à partir des données data
+    '''
+    fig, ax = plt.subplots()
+    sns.barplot(data=data, ax=ax)
+    return fig
 
 def barplot_from_data(data, x, y):
     '''Renvoie un diagramme en batons à partir des données data
@@ -42,12 +52,13 @@ def get_tophashtags(tweets):
 
     return hashtags
 
+
 def get_topmentions(tweets):
     mentions = tweets.str.findall('(@[A-Za-z0-9]+)').apply(lambda x: pd.value_counts(x)).sum(axis=0).to_frame().reset_index().sort_values(by=0,ascending=False)
     mentions.columns = ['mention', 'occurences']
 
     return mentions
-    
+
 def get_locations_by_occurences(geoTweets):
     '''Renvoie un dataframe avec les colonnes [lat, lon] à partir d'un vecteur de chaines ['lat,lon,rayon']
     '''
@@ -75,6 +86,7 @@ def map_from_locations(geoTweets):
         ).add_to(m)
 
     folium_static(m)
+
 
 def generate_random_color():
     '''Génère une couleur aléatoire au format héxadécimal

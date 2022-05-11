@@ -5,6 +5,11 @@ from spacy.attrs import ORTH
 from itertools import chain
 import re
 from unidecode import unidecode
+import streamlit as st
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+
 
 def language_selection(df, lang='fr'):
     '''Enlève les tweets qui ne sont pas dans les langues "lang"
@@ -12,7 +17,7 @@ def language_selection(df, lang='fr'):
     '''
     return df[df['language']==lang]
 
-
+@st.cache 
 def basic_preproc(df, important_attr):
     """
     supprime les enregistrements ayant des valeurs manquantes, 
@@ -37,6 +42,7 @@ def clean(doc):
     and(not token.is_stop)#si on l'ajoute pas ici il va ajouter les tokens comme .apres
     and (token.ent_type_ != "GPE") 
   ]
+
 
 def tokenization(tweets, nlp):
     ''' Renvoie une liste de tokens pour chaque tweets ainsi que le vocabulaire global
@@ -87,6 +93,7 @@ def tokenization(tweets, nlp):
 
     return tokens, vocabulary
 
+
 def remove_stopwords(tkns, nlp, custom_stopwords=[]):
     '''Enlève, parmi les tokens, ceux qui sont des stop words
     tkns : Liste de tokens
@@ -107,7 +114,7 @@ def remove_stopwords(tkns, nlp, custom_stopwords=[]):
                 if(t=='journee'):#jour
                     l.append('jour')
                 elif(t=='francai'):#francais
-                    l.append('francais')
+                    l.append('français')
                 elif(t=='pay'):#pays
                     l.append('pays')
                 else:
@@ -118,6 +125,28 @@ def remove_stopwords(tkns, nlp, custom_stopwords=[]):
     MYvocabulary=set(chain(*final_tokens))
     
     return final_tokens,MYvocabulary
+
+def vectorization(tokens, nlp , custom_stopwords=[]):
+    '''Retourne une matrice sparce (terme-document)
+    tokens : doit être un itérable de chaines de caractères ["","","",...,""]
+    
+    Les différentes prétraitements doivent être faits antérieurement à l'appel de cette fonction (stop-words, tokenisation, etc.)
+    '''
+    vectorizer = TfidfVectorizer()
+    X_tdf = vectorizer.fit_transform(tokens)
+
+    return X_tdf
+
+
+def get_tokens_as_listChar(tokens):
+    '''Prend des tokens sous forme de liste de listes et les renvoie sous forme de liste de chaines
+    '''
+    list_words = []
+    for tkn in tokens:
+        list_words.append(" ".join(tkn))
+
+    return list_words
+
 
 def load_custom_stopwords():
     return [
@@ -183,5 +212,5 @@ def load_custom_stopwords():
         'trop',
         'mot',
         'aSSa',
-        
+        'bon',
     ]

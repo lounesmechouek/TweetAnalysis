@@ -1,6 +1,7 @@
 from . import twintFetch
+import streamlit as st
 
-
+@st.cache 
 def get_tweets(nb_max_tweet, my_search, raw_corpus_filePath, date_Begin, date_End, geo=None):
     '''Récupère des tweets selon les paramètres spécifiés
     nb_max_tweet : limite le nombre de tweets à récupérer (par position géographique)

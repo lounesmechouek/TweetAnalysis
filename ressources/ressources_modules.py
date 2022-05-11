@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 
+
+
 def load_coordinates_asDict(rayon='10km', default={"Peu importe": None}):
     '''Renvoie un dictionnaire du type {'Nom Ville': 'latitude,longitude,rayon'}
     rayon : rayon à prendre en compte lors de la recherche
@@ -17,6 +19,7 @@ def load_coordinates_asDict(rayon='10km', default={"Peu importe": None}):
         return coord_dict
     except:
         raise
+
 
 def load_coordinates_asDF():
     '''Fonction simple pour récupérer la liste des coordonnées en tant que dataframe

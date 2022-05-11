@@ -1,5 +1,7 @@
 import twint
 import os
+import streamlit as st
+
 
 class twintFetch:
   def __init__(self, nb_limit, out_file, search_terms):
